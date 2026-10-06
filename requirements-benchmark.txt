@@ -1,0 +1,6 @@
+# Exact versions used for stage-3 numerical checks. No neural training dependencies.
+numpy==2.5.3
+pandas==3.0.6
+scipy==1.18.1
+QuantLib==1.43
+openpyxl==3.1.5

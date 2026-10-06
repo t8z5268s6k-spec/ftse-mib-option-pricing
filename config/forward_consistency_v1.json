@@ -1,0 +1,18 @@
+{
+  "version": "1.0",
+  "prepared_on": "2026-10-05",
+  "scope": "same ten frozen training dates; diagnostics only",
+  "source": "results/current/tick_input_validation_v1",
+  "primary": "primary_0s",
+  "other_scopes": ["all_selected", "sensitivity_60s", "sensitivity_300s"],
+  "fixed_input": "same-date WRDS zero rate, unchanged",
+  "forward_interval": "[K+(CallBid-PutAsk)/D, K+(CallAsk-PutBid)/D], D=exp(-r*T)",
+  "feasibility": "intersection across all matched strikes of a date/expiry, requiring a positive forward",
+  "parity_tolerance_points": 0.000001,
+  "comparison": "WRDS F=S*exp((r-q)*T) versus common interval; q is never overwritten",
+  "conflicts": "retain every pair; report binding interval witnesses and minimum maximum parity-interval violation",
+  "single_pair_is_identification_evidence": false,
+  "new_dates_or_quotes_selected_using_errors": false,
+  "calibration_performed": false,
+  "holdouts_used": false
+}

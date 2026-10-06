@@ -1,0 +1,132 @@
+{
+  "version": "2.0",
+  "prepared_on": "2026-10-05",
+  "scope": "bounded same-date Heston development pilot within training period; no neural training or new data collection",
+  "research_question": "Do Greek-informed neural networks improve FTSE MIB pricing accuracy, stability and sensitivity consistency under illiquidity and sparse data?",
+  "final_comparison": [
+    "Heston Monte Carlo",
+    "price-only neural network",
+    "differential neural network"
+  ],
+  "price_target": "OptionMid",
+  "price_unit": "index points",
+  "source": "results/current/tick_input_validation_v1/quote_diagnostics.csv",
+  "dates_source": "results/current/tick_input_validation_v1/selected_dates.csv",
+  "timestamp_policy": "config/tick_quality_policy_v1.json; Policy0 only",
+  "split": {
+    "unit": [
+      "Date",
+      "Expiration",
+      "Strike"
+    ],
+    "rule": "sort distinct strikes within each date/expiry; zero-based rank modulo 5 == 4 is development control, all others fit; both option sides stay together",
+    "fraction_nominal": 0.2,
+    "small_terms": "fewer than 5 strikes gives no controls; report explicitly",
+    "chronological_holdouts": "original boundaries unchanged; no validation/test access"
+  },
+  "calibration": {
+    "frequency": "one independent fit per selected date",
+    "parameters": "five Heston parameters jointly across eligible maturities",
+    "main_carry": "same-date WRDS r and q, unchanged",
+    "optimizer": {
+      "bounds_lower": [
+        0.0001,
+        0.05,
+        0.0001,
+        0.01,
+        -0.98
+      ],
+      "bounds_upper": [
+        1.0,
+        15.0,
+        1.0,
+        3.0,
+        0.98
+      ],
+      "starts": [
+        [
+          0.04,
+          1.5,
+          0.04,
+          0.3,
+          -0.7
+        ],
+        [
+          0.09,
+          3.0,
+          0.09,
+          0.6,
+          -0.4
+        ],
+        [
+          0.02,
+          0.5,
+          0.06,
+          1.0,
+          -0.8
+        ]
+      ],
+      "max_nfev": 150,
+      "integration_order_fit": 96,
+      "integration_order_check": 192,
+      "selection": "lowest historical-fit objective among successful starts only"
+    },
+    "objective": "(price - market mid) / max(halfspread, 1 index point) on fit rows only",
+    "reference": "fixed Heston parameters v0=.04,kappa=1.5,theta=.04,sigma=.3,rho=-.7"
+  },
+  "forward_sensitivity": {
+    "purpose": "isolate input effect; reprice same fitted Heston parameters, no second calibration",
+    "rate": "unchanged WRDS rate",
+    "estimate_from": "matched call/put FIT groups on same date/expiry only",
+    "minimum_fit_pairs": 3,
+    "estimator": "midpoint of strictly positive common forward interval from fit-pair bid/ask ranges",
+    "q": "r - log(F/Spot)/T",
+    "missing_or_inconsistent": "mark unavailable for that term; no fallback presented as own estimate; main result retains rows",
+    "comparison": "report WRDS versus alternative q only on identical control rows with available estimate",
+    "interpretation": "same-date conditional sensitivity; not independent forecasting or an optimized competing calibration"
+  },
+  "price_filters": {
+    "minimum_days": 30,
+    "maximum_days": 365,
+    "exclude_missing_iv": false,
+    "exclude_parity_errors": false,
+    "exclude_zero_volume": false,
+    "exclude_zero_open_interest": false,
+    "change_midprices": false
+  },
+  "liquidity_reporting": {
+    "preserved_flag": "Volume < 10 AND OpenInterest < 50",
+    "spread": "report spread continuously; no new wide-spread cutoff",
+    "sparse_data": "do not discard thin groups merely for poor errors"
+  },
+  "metrics": [
+    "MAE",
+    "RMSE",
+    "share inside bid/ask",
+    "row counts",
+    "call/put",
+    "moneyness",
+    "maturity",
+    "liquidity flag",
+    "parameter bounds",
+    "failed fits"
+  ],
+  "mc_alignment": {
+    "calibration_engine": "analytic Heston for speed",
+    "thesis_target_paths": 20000,
+    "thesis_target_steps_per_year": 64,
+    "antithetic": true,
+    "sobol": true,
+    "status": "final MC benchmark still requires explicit implementation and numerical validation; analytic results must not be called MC"
+  },
+  "neural_stage": {
+    "shared_price_target": "market mid for fair empirical comparison; explicitly correct conflicting chapter 5.2 text later",
+    "shared_rows_and_features": true,
+    "differential_consistency": "price derivatives must be connected to price output; vendor Greeks require unit/price-basis check before training",
+    "implementation_now": false
+  },
+  "no_new_date_search": true,
+  "no_parameter_grid_expansion": true,
+  "no_additional_data_downloads": true,
+  "models_fitted_in_preparation": false
+}
